@@ -1,0 +1,206 @@
+{{ define "metrics-response" }}
+{{ if .metrics }}
+    {{ if eq .metrics.type "redis" }}
+        <!-- Redis Metrics -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-database"></i> Redis Server Info
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">Version</small>
+                                <div class="h6 mb-0">
+                                    {{ if .metrics.info }}
+                                        {{ $lines := split .metrics.info "\n" }}
+                                        {{ range $lines }}
+                                            {{ if hasPrefix . "redis_version:" }}
+                                                {{ trimPrefix . "redis_version:" }}
+                                            {{ end }}
+                                        {{ end }}
+                                    {{ else }}N/A{{ end }}
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Uptime</small>
+                                <div class="h6 mb-0">
+                                    {{ if .metrics.info }}
+                                        {{ $lines := split .metrics.info "\n" }}
+                                        {{ range $lines }}
+                                            {{ if hasPrefix . "uptime_in_days:" }}
+                                                {{ trimPrefix . "uptime_in_days:" }} days
+                                            {{ end }}
+                                        {{ end }}
+                                    {{ else }}N/A{{ end }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-memory"></i> Memory Usage
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">Used Memory</small>
+                                <div class="h6 mb-0">
+                                    {{ if .metrics.info }}
+                                        {{ $lines := split .metrics.info "\n" }}
+                                        {{ range $lines }}
+                                            {{ if hasPrefix . "used_memory_human:" }}
+                                                {{ trimPrefix . "used_memory_human:" }}
+                                            {{ end }}
+                                        {{ end }}
+                                    {{ else }}N/A{{ end }}
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Peak Memory</small>
+                                <div class="h6 mb-0">
+                                    {{ if .metrics.info }}
+                                        {{ $lines := split .metrics.info "\n" }}
+                                        {{ range $lines }}
+                                            {{ if hasPrefix . "used_memory_peak_human:" }}
+                                                {{ trimPrefix . "used_memory_peak_human:" }}
+                                            {{ end }}
+                                        {{ end }}
+                                    {{ else }}N/A{{ end }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-people"></i> Client Connections
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">Connected Clients</small>
+                                <div class="h6 mb-0">
+                                    {{ if .metrics.info }}
+                                        {{ $lines := split .metrics.info "\n" }}
+                                        {{ range $lines }}
+                                            {{ if hasPrefix . "connected_clients:" }}
+                                                {{ trimPrefix . "connected_clients:" }}
+                                            {{ end }}
+                                        {{ end }}
+                                    {{ else }}N/A{{ end }}
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Total Commands</small>
+                                <div class="h6 mb-0">
+                                    {{ if .metrics.info }}
+                                        {{ $lines := split .metrics.info "\n" }}
+                                        {{ range $lines }}
+                                            {{ if hasPrefix . "total_commands_processed:" }}
+                                                {{ trimPrefix . "total_commands_processed:" }}
+                                            {{ end }}
+                                        {{ end }}
+                                    {{ else }}N/A{{ end }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-cpu"></i> CPU Usage
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">System CPU</small>
+                                <div class="h6 mb-0">
+                                    {{ if .metrics.info }}
+                                        {{ $lines := split .metrics.info "\n" }}
+                                        {{ range $lines }}
+                                            {{ if hasPrefix . "used_cpu_sys:" }}
+                                                {{ trimPrefix . "used_cpu_sys:" }}s
+                                            {{ end }}
+                                        {{ end }}
+                                    {{ else }}N/A{{ end }}
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">User CPU</small>
+                                <div class="h6 mb-0">
+                                    {{ if .metrics.info }}
+                                        {{ $lines := split .metrics.info "\n" }}
+                                        {{ range $lines }}
+                                            {{ if hasPrefix . "used_cpu_user:" }}
+                                                {{ trimPrefix . "used_cpu_user:" }}s
+                                            {{ end }}
+                                        {{ end }}
+                                    {{ else }}N/A{{ end }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Raw Redis Info -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-code"></i> Raw Redis Info
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <pre class="text-light bg-dark p-3 rounded" style="font-size: 0.8rem; max-height: 400px; overflow-y: auto;">{{ .metrics.info }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{ else }}
+        <!-- Fallback for other metric types -->
+        <div class="text-center text-muted">
+            <i class="bi bi-info-circle"></i> Metrics data available but format not supported
+        </div>
+    {{ end }}
+{{ else }}
+    <div class="text-center text-muted">
+        <i class="bi bi-info-circle"></i> No metrics data available
+    </div>
+{{ end }}
+
+<!-- Footer with spacing -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="text-center text-muted py-4">
+            <small>
+                <i class="bi bi-clock"></i> Last updated: {{ .timestamp }}
+            </small>
+        </div>
+    </div>
+</div>
+{{ end }}

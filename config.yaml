@@ -1,0 +1,11 @@
+server:
+  port: "8080"
+  host: "localhost"
+
+remote:
+  url: "http://localhost:8000"
+  api_key: "secauto-api-key-2024-07-14"
+
+logging:
+  level: "info"
+  file: "logs/secauto-gui.log" 

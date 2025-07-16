@@ -1,0 +1,120 @@
+{{ define "playbooks-content" }}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-book"></i> Playbooks
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-primary" 
+                    hx-get="/web/playbooks/new" 
+                    hx-target="#playbook-modal"
+                    hx-trigger="click">
+                <i class="bi bi-plus"></i> New Playbook
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Playbooks List -->
+<div id="playbooks-list"
+     hx-get="/api/proxy/playbooks"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading playbooks...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Playbook Upload Modal -->
+<div class="modal fade" id="playbookModal" tabindex="-1" aria-labelledby="playbookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="playbookModalLabel">Upload New Playbook</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="playbook-modal">
+                <form hx-post="/api/playbook/upload" 
+                      hx-encoding="multipart/form-data"
+                      hx-target="#playbooks-list"
+                      hx-swap="outerHTML">
+                    <div class="mb-3">
+                        <label for="playbook-file" class="form-label">Playbook File</label>
+                        <input type="file" class="form-control" id="playbook-file" name="file" required>
+                        <div class="form-text">Upload a YAML playbook file</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="playbook-context" class="form-label">Context (Optional)</label>
+                        <textarea class="form-control" id="playbook-context" name="context" rows="3" placeholder='{"key": "value"}'></textarea>
+                        <div class="form-text">JSON context for the playbook execution</div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Upload Playbook</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Playbook Results Modal -->
+<div class="modal fade" id="playbookResultsModal" tabindex="-1" aria-labelledby="playbookResultsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="playbookResultsModalLabel">Playbook Execution Results</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="playbook-results">
+                <!-- Playbook execution results will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Execute Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightning"></i> Quick Execute
+                </h5>
+            </div>
+            <div class="card-body">
+                <form hx-post="/api/playbook" 
+                      hx-target="#quick-execute-results"
+                      hx-swap="innerHTML">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="quick-playbook" class="form-label">Playbook YAML</label>
+                                <textarea class="form-control" id="quick-playbook" name="playbook" rows="10" 
+                                          placeholder="Enter your playbook YAML here..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="quick-context" class="form-label">Context (Optional)</label>
+                                <textarea class="form-control" id="quick-context" name="context" rows="10" 
+                                          placeholder='{"key": "value"}'></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-play"></i> Execute Playbook
+                        </button>
+                    </div>
+                </form>
+                <div id="quick-execute-results" class="mt-3">
+                    <!-- Results will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }} 

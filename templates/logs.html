@@ -1,0 +1,235 @@
+{{ define "logs-content" }}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-journal-text"></i> System Logs
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" 
+                    hx-get="/web/logs" 
+                    hx-target="#logs-container"
+                    hx-trigger="click">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="bi bi-funnel"></i>
+            </span>
+            <select class="form-select" id="level-filter">
+                <option value="">All Levels</option>
+                <option value="info">INFO</option>
+                <option value="warning">WARN</option>
+                <option value="error">ERROR</option>
+            </select>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="bi bi-gear"></i>
+            </span>
+            <input type="text" class="form-control" id="job-filter" placeholder="Filter by job name">
+        </div>
+    </div>
+</div>
+
+<!-- Logs Container -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-list-ul"></i> Recent Activity
+        </h5>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="auto-refresh" checked>
+            <label class="form-check-label" for="auto-refresh">
+                Auto-refresh
+            </label>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div id="logs-container">
+            {{ if .logs }}
+                {{ range .logs }}
+                <div class="log-entry {{ .level }} p-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-1">
+                                <span class="badge 
+                                    {{ if eq .level "info" }}bg-info
+                                    {{ else if eq .level "warning" }}bg-warning
+                                    {{ else }}bg-danger{{ end }} me-2">
+                                    {{ .level }}
+                                </span>
+                                <small class="text-muted">{{ .timestamp.Format "2006-01-02 15:04:05" }}</small>
+                                {{ if .message }}
+                                <span class="badge bg-secondary ms-2">{{ .message }}</span>
+                                {{ end }}
+                            </div>
+                            <div class="log-message">
+                                {{ if .status }}
+                                    Job: {{ .message }} - Status: {{ .status }}
+                                {{ else }}
+                                    {{ .message }}
+                                {{ end }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{ end }}
+            {{ else }}
+                <div class="text-center p-4">
+                    <i class="bi bi-info-circle text-muted"></i>
+                    <p class="text-muted mb-0">No recent activity found</p>
+                </div>
+            {{ end }}
+        </div>
+    </div>
+</div>
+
+<!-- Job Status Summary -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-activity"></i> Job Status Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                {{ if .logs }}
+                <div class="row">
+                    {{ $running := 0 }}
+                    {{ $completed := 0 }}
+                    {{ $failed := 0 }}
+                    {{ $pending := 0 }}
+                    {{ range .logs }}
+                        {{ if eq .status "running" }}{{ $running = add $running 1 }}{{ end }}
+                        {{ if eq .status "completed" }}{{ $completed = add $completed 1 }}{{ end }}
+                        {{ if eq .status "failed" }}{{ $failed = add $failed 1 }}{{ end }}
+                        {{ if eq .status "pending" }}{{ $pending = add $pending 1 }}{{ end }}
+                    {{ end }}
+                    
+                    <div class="col-md-3 text-center">
+                        <div class="metric-item">
+                            <div class="h3 text-success">{{ $running }}</div>
+                            <small class="text-muted">Running</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="metric-item">
+                            <div class="h3 text-info">{{ $completed }}</div>
+                            <small class="text-muted">Completed</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="metric-item">
+                            <div class="h3 text-danger">{{ $failed }}</div>
+                            <small class="text-muted">Failed</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="metric-item">
+                            <div class="h3 text-secondary">{{ $pending }}</div>
+                            <small class="text-muted">Pending</small>
+                        </div>
+                    </div>
+                </div>
+                {{ else }}
+                <div class="text-center text-muted">
+                    <i class="bi bi-info-circle"></i> No job data available
+                </div>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Handle log filtering
+document.addEventListener('DOMContentLoaded', function() {
+    const levelFilter = document.getElementById('level-filter');
+    const jobFilter = document.getElementById('job-filter');
+    const autoRefresh = document.getElementById('auto-refresh');
+    
+    // Level filter
+    levelFilter.addEventListener('change', function() {
+        const level = this.value;
+        const jobName = jobFilter.value;
+        updateLogs(level, jobName);
+    });
+    
+    // Job filter
+    jobFilter.addEventListener('input', function() {
+        const level = levelFilter.value;
+        const jobName = this.value;
+        updateLogs(level, jobName);
+    });
+    
+    // Auto-refresh toggle
+    autoRefresh.addEventListener('change', function() {
+        if (this.checked) {
+            // Enable auto-refresh
+            setInterval(function() {
+                htmx.ajax('GET', '/web/logs', {
+                    target: '#logs-container',
+                    swap: 'innerHTML'
+                });
+            }, 10000); // Refresh every 10 seconds
+        }
+    });
+});
+
+function updateLogs(level, jobName) {
+    let url = '/web/logs?';
+    if (level) url += `level=${level}&`;
+    if (jobName) url += `job=${jobName}`;
+    
+    htmx.ajax('GET', url, {
+        target: '#logs-container',
+        swap: 'innerHTML'
+    });
+}
+</script>
+
+<style>
+.metric-item {
+    padding: 1rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    transition: transform 0.2s ease;
+}
+
+.metric-item:hover {
+    transform: translateY(-2px);
+    background: rgba(255,255,255,0.1);
+}
+
+.log-entry {
+    border-left: 3px solid transparent;
+    transition: background-color 0.2s ease;
+}
+
+.log-entry:hover {
+    background-color: rgba(255,255,255,0.05);
+}
+
+.log-entry.info {
+    border-left-color: #0dcaf0;
+}
+
+.log-entry.warning {
+    border-left-color: #ffc107;
+}
+
+.log-entry.error {
+    border-left-color: #dc3545;
+}
+</style>
+{{ end }} 

@@ -1,0 +1,41 @@
+{{ define "logs-response" }}
+{{ if .logs }}
+    <div class="table-responsive">
+        <table class="table table-dark table-striped">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Level</th>
+                    <th>Message</th>
+                    <th>Source</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range .logs }}
+                <tr>
+                    <td>{{ .timestamp }}</td>
+                    <td>
+                        {{ if eq .level "ERROR" }}
+                            <span class="badge bg-danger">{{ .level }}</span>
+                        {{ else if eq .level "WARN" }}
+                            <span class="badge bg-warning text-dark">{{ .level }}</span>
+                        {{ else if eq .level "INFO" }}
+                            <span class="badge bg-info">{{ .level }}</span>
+                        {{ else }}
+                            <span class="badge bg-secondary">{{ .level }}</span>
+                        {{ end }}
+                    </td>
+                    <td>{{ .message }}</td>
+                    <td>{{ .source }}</td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
+    </div>
+{{ else }}
+    <div class="text-center text-muted">
+        <i class="bi bi-inbox fs-1"></i>
+        <p>No logs available</p>
+    </div>
+{{ end }}
+{{ end }} 

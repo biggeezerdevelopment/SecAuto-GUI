@@ -1,0 +1,28 @@
+{{ define "automation-status-response" }}
+<div class="text-center">
+    <div class="h4 mb-3">
+            {{ if eq .status "running" }}
+        <span class="badge bg-success fs-6">{{ .status }}</span>
+    {{ else if eq .status "failed" }}
+        <span class="badge bg-danger fs-6">{{ .status }}</span>
+    {{ else }}
+        <span class="badge bg-secondary fs-6">{{ .status }}</span>
+    {{ end }}
+    </div>
+    {{ if .progress }}
+        <div class="progress mb-3">
+            <div class="progress-bar bg-success" role="progressbar" 
+                 style="width: {{ .progress }}%" 
+                 aria-valuenow="{{ .progress }}" aria-valuemin="0" aria-valuemax="100">
+                {{ .progress }}%
+            </div>
+        </div>
+    {{ end }}
+    {{ if .started_at }}
+        <small class="text-muted d-block">Started: {{ .started_at }}</small>
+    {{ end }}
+    {{ if .estimated_completion }}
+        <small class="text-muted d-block">ETA: {{ .estimated_completion }}</small>
+    {{ end }}
+</div>
+{{ end }} 

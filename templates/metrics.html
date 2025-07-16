@@ -1,0 +1,74 @@
+{{ define "metrics-content" }}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-graph-up"></i> Redis System Metrics
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" 
+                    hx-get="/api/proxy/metrics" 
+                    hx-target="#metrics-container"
+                    hx-trigger="click">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Metrics Overview -->
+<div id="metrics-container"
+     hx-get="/api/proxy/metrics"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading metrics...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// Simple performance chart
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('performanceChart');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        
+        // Create a simple line chart
+        ctx.strokeStyle = '#667eea';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        
+        // Sample data points
+        const data = [30, 45, 35, 50, 40, 55, 45, 60, 50, 65];
+        const stepX = canvas.width / (data.length - 1);
+        const stepY = canvas.height / 100;
+        
+        data.forEach((value, index) => {
+            const x = index * stepX;
+            const y = canvas.height - (value * stepY);
+            
+            if (index === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        
+        ctx.stroke();
+        
+        // Add grid lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 1;
+        
+        for (let i = 0; i <= 10; i++) {
+            const y = (canvas.height / 10) * i;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+    }
+});
+</script>
+{{ end }} 

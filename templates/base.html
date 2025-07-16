@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .title }} - SecAuto</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="/static/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- HTMX -->
+    <!-- <script src="https://unpkg.com/htmx.org@1.9.6"></script> -->
+    <script src="/static/js/htmx.js"></script>
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            border-radius: 8px;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+        }
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.1);
+        }
+        .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .card {
+            border: 1px solid rgba(255,255,255,0.1);
+            background-color: rgba(255,255,255,0.05);
+        }
+        .card-header {
+            background-color: rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .automation-card {
+            transition: transform 0.2s ease;
+        }
+        .automation-card:hover {
+            transform: translateY(-2px);
+        }
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+        }
+        .log-entry {
+            border-left: 3px solid transparent;
+            padding-left: 1rem;
+        }
+        .log-entry.info {
+            border-left-color: #0dcaf0;
+        }
+        .log-entry.warning {
+            border-left-color: #ffc107;
+        }
+        .log-entry.error {
+            border-left-color: #dc3545;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* Sidebar styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        /* Mobile sidebar behavior */
+        @media (max-width: 767px) {
+            .sidebar {
+                left: -100%;
+                width: 280px;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+            
+            .sidebar::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0,0,0,0.5);
+                z-index: -1;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            
+            .sidebar.show::before {
+                opacity: 1;
+            }
+        }
+        
+        /* Config menu styles */
+        .config-submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            width: 100%;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .config-submenu.show {
+            max-height: 300px;
+        }
+        
+        .config-submenu .nav-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        
+        .config-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .config-toggle .bi-chevron-down {
+            transition: transform 0.3s ease;
+        }
+        
+        .config-toggle.active .bi-chevron-down {
+            transform: rotate(180deg);
+        }
+        
+        /* Main content layout */
+        #main-content-area {
+            margin-left: 250px;
+            min-height: 100vh;
+            padding-top: 1rem;
+        }
+        
+        /* Mobile main content adjustment */
+        @media (max-width: 767px) {
+            #main-content-area {
+                margin-left: 0 !important;
+            }
+        }
+        
+
+    </style>
+</head>
+<body class="bg-dark text-light">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+                <div class="position-sticky pt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="text-center flex-grow-1">
+                            <h4 class="text-white mb-0">
+                                <i class="bi bi-shield-check"></i> SecAuto
+                            </h4>
+                            <small class="text-muted">Automation Framework</small>
+                        </div>
+                        <button class="btn btn-sm btn-outline-light d-md-none" id="sidebar-toggle">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/" hx-get="/" hx-target="#main-content" hx-push-url="true">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item" style="width: 100%;">
+                            <a class="nav-link config-toggle" href="#" onclick="toggleConfigSubmenu(event)">
+                                <span>
+                                    <i class="bi bi-gear-wide-connected"></i> Config
+                                </span>
+                                <i class="bi bi-chevron-down"></i>
+                            </a>
+                            <ul class="nav flex-column config-submenu" style="width: 100%;">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/web/automations" hx-get="/web/automations" hx-target="#main-content" hx-push-url="true">
+                                        <i class="bi bi-gear"></i> Automations
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/web/integrations" hx-get="/web/integrations" hx-target="#main-content" hx-push-url="true">
+                                        <i class="bi bi-plug"></i> Integrations
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/web/playbooks" hx-get="/web/playbooks" hx-target="#main-content" hx-push-url="true">
+                                        <i class="bi bi-book"></i> Playbooks
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/web/plugins" hx-get="/web/plugins" hx-target="#main-content" hx-push-url="true">
+                                        <i class="bi bi-puzzle"></i> Plugins
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/web/logs" hx-get="/web/logs" hx-target="#main-content" hx-push-url="true">
+                                <i class="bi bi-journal-text"></i> Logs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/web/metrics" hx-get="/web/metrics" hx-target="#main-content" hx-push-url="true">
+                                <i class="bi bi-graph-up"></i> Metrics
+                            </a>
+                        </li>
+                        {{ if eq .user.Role "admin" }}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/users" hx-get="/admin/users" hx-target="#main-content" hx-push-url="true">
+                                <i class="bi bi-people"></i> User Management
+                            </a>
+                        </li>
+                        {{ end }}
+                        <li class="nav-item mt-4">
+                            <a class="nav-link" href="http://localhost:8000/api-docs" target="_blank">
+                                <i class="bi bi-file-text"></i> API Docs
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="px-md-4" id="main-content-area">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <button class="btn btn-sm btn-outline-secondary d-md-none" id="sidebar-toggle-main">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <div class="flex-grow-1"></div>
+                    <div class="d-flex align-items-center">
+                        <span class="text-white me-3">
+                            <i class="bi bi-person-circle"></i> {{ .user.Username }}
+                        </span>
+                        <a href="/logout" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </div>
+                </div>
+                <div id="main-content">
+                    {{ if eq .title "SecAuto Dashboard" }}
+                        {{ template "dashboard-content" . }}
+                    {{ else if eq .title "Automations" }}
+                        {{ template "automations-content" . }}
+                    {{ else if eq .title "System Logs" }}
+                        {{ template "logs-content" . }}
+                    {{ else if eq .title "System Metrics" }}
+                        {{ template "metrics-content" . }}
+                    {{ else if eq .title "Automation Details" }}
+                        {{ template "automation-detail-content" . }}
+                    {{ else if eq .title "User Management - SecAuto" }}
+                        {{ template "admin-users-content" . }}
+                    {{ else }}
+                        {{ template "dashboard-content" . }}
+                    {{ end }}
+                </div>
+            </main>
+
+    <!-- Bootstrap JS -->
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Sidebar toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebarToggleMain = document.getElementById('sidebar-toggle-main');
+            
+            // Toggle sidebar on mobile
+            function toggleMainSidebar() {
+                if (sidebar.classList.contains('show')) {
+                    sidebar.classList.remove('show');
+                } else {
+                    sidebar.classList.add('show');
+                }
+            }
+            
+            // Add event listeners
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleMainSidebar);
+            }
+            
+            if (sidebarToggleMain) {
+                sidebarToggleMain.addEventListener('click', toggleMainSidebar);
+            }
+            
+            // Close sidebar when clicking outside
+            document.addEventListener('click', function(event) {
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isClickOnToggle = (sidebarToggle && sidebarToggle.contains(event.target)) || 
+                                     (sidebarToggleMain && sidebarToggleMain.contains(event.target));
+                const isClickOnConfigToggle = event.target.closest('.config-toggle');
+                
+                if (!isClickInsideSidebar && !isClickOnToggle && !isClickOnConfigToggle && sidebar.classList.contains('show')) {
+                    sidebar.classList.remove('show');
+                }
+            });
+        });
+        
+        // Highlight active nav item
+        function highlightActiveNavItem() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+            
+            const currentPath = window.location.pathname;
+            let activeLink = document.querySelector(`[href="${currentPath}"]`);
+            
+            // If no exact match, try to find partial matches for submenu items
+            if (!activeLink && currentPath.startsWith('/web/')) {
+                activeLink = document.querySelector(`[href*="${currentPath}"]`);
+            }
+            
+            if (activeLink) {
+                activeLink.classList.add('active');
+                
+                // If it's a submenu item, also highlight the parent config menu
+                if (activeLink.closest('.config-submenu')) {
+                    const configToggle = document.querySelector('.config-toggle');
+                    if (configToggle) {
+                        configToggle.classList.add('active');
+                        const submenu = configToggle.nextElementSibling;
+                        if (submenu && submenu.classList.contains('config-submenu')) {
+                            submenu.classList.add('show');
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Highlight active nav item on page load
+        document.addEventListener('DOMContentLoaded', highlightActiveNavItem);
+        
+        // Highlight active nav item after HTMX requests with a small delay
+        document.addEventListener('htmx:afterRequest', function() {
+            setTimeout(highlightActiveNavItem, 100);
+        });
+        
+        // Also highlight when URL changes (for hx-push-url)
+        document.addEventListener('htmx:afterSettle', function() {
+            setTimeout(highlightActiveNavItem, 50);
+        });
+        
+        // Listen for popstate events (browser back/forward)
+        window.addEventListener('popstate', function() {
+            setTimeout(highlightActiveNavItem, 50);
+        });
+        
+        // Auto-refresh for real-time updates
+        setInterval(function() {
+            const currentPath = window.location.pathname;
+            if (currentPath === '/web/metrics' || currentPath === '/web/logs') {
+                htmx.ajax('GET', currentPath, {target: '#main-content', swap: 'innerHTML'});
+            }
+        }, 30000); // Refresh every 30 seconds
+        
+        // Config menu toggle functionality
+        function toggleConfigSubmenu(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const configToggle = event.currentTarget;
+            const submenu = configToggle.parentElement.querySelector('.config-submenu');
+            
+            console.log('Config toggle clicked');
+            console.log('Config toggle element:', configToggle);
+            console.log('Submenu element:', submenu);
+            
+            configToggle.classList.toggle('active');
+            submenu.classList.toggle('show');
+            
+            console.log('Submenu show class:', submenu.classList.contains('show'));
+        }
+        
+
+    </script>
+</body>
+</html> 

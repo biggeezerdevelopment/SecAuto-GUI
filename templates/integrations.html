@@ -1,0 +1,243 @@
+{{ define "integrations-content" }}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-plug"></i> Integrations
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-primary" 
+                    hx-get="/web/integrations/new" 
+                    hx-target="#main-content"
+                    hx-push-url="true">
+                <i class="bi bi-plus"></i> <!--New Integration-->
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#uploadIntegrationModal">
+                <i class="bi bi-upload"></i> <!--Upload Integration-->
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#uploadBundleModal">
+                <i class="bi bi-file-earmark-zip"></i> <!--Upload Bundle-->
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Integrations List -->
+<div id="integrations-list"
+     hx-get="/api/proxy/integrations"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading integrations...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Integration Details Modal -->
+<div class="modal fade" id="integrationDetailsModal" tabindex="-1" aria-labelledby="integrationDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="integrationDetailsModalLabel">Integration Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="integration-details">
+                <!-- Integration details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Integration Modal -->
+<div class="modal fade" id="uploadIntegrationModal" tabindex="-1" aria-labelledby="uploadIntegrationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadIntegrationModalLabel">
+                    <i class="bi bi-upload"></i> Upload Integration
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="upload-integration-form" hx-post="/api/integrations/upload" 
+                      hx-encoding="multipart/form-data"
+                      hx-target="#main-content"
+                      hx-swap="innerHTML">
+                    
+                    <!-- File Upload Section -->
+                    <div class="mb-3">
+                        <label for="integration-file" class="form-label">Integration File *</label>
+                        <input type="file" class="form-control" id="integration-file" name="file" 
+                               accept=".py,.json,.yaml,.yml" required>
+                        <div class="form-text">Upload a Python Integration File</div>
+                    </div>
+                    
+                    <!-- Configuration Section -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="bi bi-gear"></i> Configuration
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <!-- Basic Information -->
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label for="upload-integration-name" class="form-label small">Name *</label>
+                                    <input type="text" class="form-control form-control-sm" id="upload-integration-name" name="name" required>
+                                </div>
+                                
+                                <div class="col-md-6 mb-2">
+                                    <label for="upload-integration-type" class="form-label small">Type *</label>
+                                    <select class="form-select form-select-sm" id="upload-integration-type" name="type" required>
+                                        <option value="">Select...</option>
+                                        <option value="api">API</option>
+                                        <option value="database">Database</option>
+                                        <option value="webhook">Webhook</option>
+                                        <option value="email">Email</option>
+                                        <option value="slack">Slack</option>
+                                        <option value="jira">Jira</option>
+                                        <option value="github">GitHub</option>
+                                        <option value="aws">AWS</option>
+                                        <option value="azure">Azure</option>
+                                        <option value="gcp">Google Cloud</option>
+                                        <option value="custom">Custom</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label for="upload-integration-version" class="form-label small">Version</label>
+                                    <input type="text" class="form-control form-control-sm" id="upload-integration-version" name="version" value="1.0.0">
+                                </div>
+                                
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="upload-integration-enabled" name="enabled" checked>
+                                        <label class="form-check-label small" for="upload-integration-enabled">
+                                            Enabled
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <label for="upload-integration-description" class="form-label small">Description</label>
+                                <textarea class="form-control form-control-sm" id="upload-integration-description" name="description" rows="1"></textarea>
+                            </div>
+                            
+                            <!-- Connection Settings -->
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label for="upload-integration-url" class="form-label small">URL</label>
+                                    <input type="url" class="form-control form-control-sm" id="upload-integration-url" name="url" placeholder="https://api.example.com">
+                                </div>
+                                
+                                <div class="col-md-6 mb-2">
+                                    <label for="upload-integration-username" class="form-label small">Username</label>
+                                    <input type="text" class="form-control form-control-sm" id="upload-integration-username" name="username">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label for="upload-integration-password" class="form-label small">Password</label>
+                                    <input type="password" class="form-control form-control-sm" id="upload-integration-password" name="password">
+                                </div>
+                                
+                                <div class="col-md-6 mb-2">
+                                    <label for="upload-integration-apikey" class="form-label small">API Key</label>
+                                    <input type="password" class="form-control form-control-sm" id="upload-integration-apikey" name="apikey">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <label for="upload-integration-settings" class="form-label small">Settings (JSON)</label>
+                                <textarea class="form-control form-control-sm" id="upload-integration-settings" name="settings" rows="1" placeholder='{"timeout": 30, "retries": 3}'></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                    <i class="bi bi-x"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-primary btn-sm" form="upload-integration-form">
+                    <i class="bi bi-upload"></i> Upload Integration
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Integration Bundle Modal -->
+<div class="modal fade" id="uploadBundleModal" tabindex="-1" aria-labelledby="uploadBundleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadBundleModalLabel">
+                    <i class="bi bi-file-earmark-zip"></i> Upload Integration Bundle
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="upload-bundle-form" hx-post="/api/integrations/upload-bundle" 
+                      hx-encoding="multipart/form-data"
+                      hx-target="#main-content"
+                      hx-swap="innerHTML">
+                    
+                    <!-- Bundle File Upload Section -->
+                    <div class="mb-3">
+                        <label for="integration-bundle-file" class="form-label">Integration Bundle *</label>
+                        <input type="file" class="form-control" id="integration-bundle-file" name="bundle" 
+                               accept=".zip,.tar,.gz,.rar" required>
+                        <div class="form-text">Upload a compressed integration bundle (ZIP, TAR, GZ, RAR)</div>
+                    </div>
+                    
+                    <!-- Bundle Configuration Section -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="bi bi-gear"></i> Bundle Options
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="upload-bundle-enabled" name="enabled" checked>
+                                    <label class="form-check-label small" for="upload-bundle-enabled">
+                                        Enable all integrations in bundle
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="upload-bundle-overwrite" name="overwrite">
+                                    <label class="form-check-label small" for="upload-bundle-overwrite">
+                                        Overwrite existing integrations
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                    <i class="bi bi-x"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-primary btn-sm" form="upload-bundle-form">
+                    <i class="bi bi-file-earmark-zip"></i> Upload Bundle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }} 

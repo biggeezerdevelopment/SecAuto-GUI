@@ -1,0 +1,58 @@
+{{ define "integrations-response" }}
+{{ if .integrations }}
+    <div class="table-responsive">
+        <table class="table table-dark table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Version</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range .integrations }}
+                <tr>
+                    <td>{{ .name }}</td>
+                    <td>{{ .type }}</td>
+                    <td>{{ .description }}</td>
+                    <td>
+                        <span class="badge {{ if .enabled }}bg-success{{ else }}bg-secondary{{ end }}">
+                            {{ if .enabled }}Enabled{{ else }}Disabled{{ end }}
+                        </span>
+                    </td>
+                    <td>{{ .version }}</td>
+                    <td class="text-end">
+                        <div class="d-flex gap-1 justify-content-end">
+                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                    hx-get="/api/integrations/{{ .name }}"
+                                    hx-target="#integration-details">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm"
+                                    hx-put="/api/integrations/{{ .name }}"
+                                    hx-target="#integration-details">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                    hx-delete="/api/integrations/{{ .name }}"
+                                    hx-confirm="Are you sure you want to delete this integration?"
+                                    hx-target="#integrations-list"
+                                    hx-swap="outerHTML">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
+    </div>
+{{ else }}
+    <div class="text-center text-muted">
+        <i class="bi bi-info-circle"></i> No integrations found
+    </div>
+{{ end }}
+{{ end }} 

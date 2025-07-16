@@ -1,0 +1,17 @@
+{{ define "error-content" }}
+<div class="alert alert-danger" role="alert">
+    <h4 class="alert-heading">
+        <i class="bi bi-exclamation-triangle"></i> Error
+    </h4>
+    <p>{{ .message }}</p>
+    <hr>
+    <p class="mb-0">
+        <button class="btn btn-outline-danger btn-sm" 
+                hx-get="{{ if .retry_url }}{{ .retry_url }}{{ else }}#{{ end }}"
+                hx-target="closest .alert"
+                hx-swap="outerHTML">
+            <i class="bi bi-arrow-clockwise"></i> Retry
+        </button>
+    </p>
+</div>
+{{ end }} 
