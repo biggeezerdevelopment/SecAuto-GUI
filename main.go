@@ -136,13 +136,20 @@ func main() {
 		protected.GET("/api/proxy/automations/:id/status", proxyAutomationStatus)
 		protected.GET("/api/proxy/logs", proxyLogs)
 
+		// File browser JSON endpoints
+		protected.GET("/api/file-browser/automations", fileBrowserAutomationsAPI)
+		protected.GET("/api/file-browser/playbooks", fileBrowserPlaybooksAPI)
+		protected.GET("/api/file-browser/plugins", fileBrowserPluginsAPI)
+
 		// Web frontend routes
 		protected.GET("/", homePage)
 		protected.GET("/web/automations", automationsPage)
+		protected.GET("/web/automations/new", automationNewPage)
 		protected.GET("/web/automations/:id", automationDetailPage)
 		protected.GET("/web/integrations", integrationsPage)
 		protected.GET("/web/integrations/new", integrationNewPage)
 		protected.GET("/web/playbooks", playbooksPage)
+		protected.GET("/web/playbooks/new", playbookNewPage)
 		protected.GET("/web/plugins", pluginsPage)
 		protected.GET("/web/logs", logsPage)
 		protected.GET("/web/metrics", metricsPage)

@@ -1,0 +1,209 @@
+{{ define "playbook-new-content" }}
+<style>
+    /* Monaco Editor height management - force fixed height */
+    .monaco-editor {
+        height: 70vh !important;
+        width: 100% !important;
+        max-height: 70vh !important;
+        min-height: 400px !important;
+        overflow: hidden !important;
+    }
+    
+    /* File browser styles */
+    .file-browser {
+        height: 70vh;
+        overflow-y: auto;
+        border-right: 1px solid #495057;
+        background-color: #212529;
+    }
+    
+    .file-browser-header {
+        padding: 10px 15px;
+        border-bottom: 1px solid #495057;
+        background-color: #343a40;
+        font-weight: 600;
+        color: #e9ecef;
+    }
+    
+    .file-browser-item {
+        padding: 8px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid #2c3034;
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .file-browser-item:hover {
+        background-color: #495057;
+    }
+    
+    .file-browser-item.selected {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    .file-browser-category {
+        margin-bottom: 15px;
+    }
+    
+    .file-browser-category-header {
+        padding: 10px 15px;
+        background-color: #495057;
+        font-weight: 600;
+        color: #e9ecef;
+        border-bottom: 1px solid #6c757d;
+        transition: background-color 0.2s;
+    }
+    
+    .file-browser-category-header:hover {
+        background-color: #5a6268;
+    }
+    
+    .file-browser-category-content {
+        max-height: 300px;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+    
+    .file-browser-category-content.collapsed {
+        max-height: 0;
+    }
+    
+    .category-toggle {
+        transition: transform 0.3s ease;
+    }
+    
+    .category-toggle.rotated {
+        transform: rotate(180deg);
+    }
+    
+    .file-browser-empty {
+        padding: 20px;
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    .file-browser-loading {
+        padding: 20px;
+        text-align: center;
+        color: #6c757d;
+    }
+    
+    /* Responsive layout */
+    @media (max-width: 768px) {
+        .file-browser {
+            height: 200px;
+            border-right: none;
+            border-bottom: 1px solid #495057;
+        }
+        
+        .monaco-editor {
+            height: calc(70vh - 200px) !important;
+        }
+    }
+</style>
+
+<div class="d-flex flex-column" style="height: calc(100vh - 100px);">
+    <!-- Header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-plus-circle"></i> Create New Playbook
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-sm btn-secondary" 
+                        hx-get="/web/playbooks" 
+                        hx-target="#main-content"
+                        hx-push-url="true">
+                    <i class="bi bi-arrow-left"></i> Back to Playbooks
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex-grow-1 d-flex flex-column">
+        <div class="row flex-grow-1 mb-3">
+            <!-- File Browser Column -->
+            <div class="col-md-3 d-flex flex-column">
+                <div class="card flex-grow-1 d-flex flex-column">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="card-title mb-0">
+                            <i class="bi bi-folder2-open"></i> File Browser
+                        </h6>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                onclick="loadFileBrowser()" 
+                                title="Refresh file browser">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                    <div class="card-body p-0 d-flex flex-column flex-grow-1">
+                        <div id="file-browser" class="file-browser">
+                            <div class="file-browser-loading">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading files...</span>
+                                </div>
+                                <div class="mt-2">Loading file structure...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Code Editor Column -->
+            <div class="col-md-9 d-flex flex-column">
+                <div class="card flex-grow-1 d-flex flex-column">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
+                            <i class="bi bi-code-slash"></i> Playbook Code
+                        </h6>
+                    </div>
+                    <div class="card-body d-flex flex-column flex-grow-1">
+                        <div class="flex-grow-1 position-relative" style="margin-bottom: 20px;">
+                            <div id="playbook-code" 
+                                 style="font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.4; resize: none;"
+                                 placeholder="# Enter your playbook code here...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="mt-auto" style="margin-top: 20px;">
+        <div class="card">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                            <i class="bi bi-info-circle"></i> 
+                            Playbook will be created with the specified configuration and Python code.
+                    </div>
+                    <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                    hx-get="/web/playbooks" 
+                                    hx-target="#main-content"
+                                    hx-push-url="true">
+                                <i class="bi bi-arrow-left"></i> Back to Playbooks
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-sm" form="integration-form">
+                                <i class="bi bi-check"></i> Create Playbook
+                            </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<script>
+// File browser functionality
+waitForMonaco('playbook-code','json');
+loadFileBrowser();
+</script>
+{{ end }} 

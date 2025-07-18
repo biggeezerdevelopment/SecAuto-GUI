@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -259,4 +260,205 @@ func integrationNewPage(c *gin.Context) {
 		"user":        user,
 		"secauto_url": secautoURL,
 	})
+}
+
+// automationNewPage serves the new automation page
+func automationNewPage(c *gin.Context) {
+	// Get current user
+	user := auth.GetCurrentUser(c)
+
+	// Get SecAuto server URL from config
+	cfg := service.GetConfig()
+	secautoURL := cfg.Remote.URL
+
+	// Check if this is an HTMX request
+	if c.GetHeader("HX-Request") == "true" {
+		// Return only the automation new content
+		c.HTML(http.StatusOK, "automation-new-content", gin.H{
+			"secauto_url": secautoURL,
+		})
+		return
+	}
+
+	// Return full page for direct navigation
+	c.HTML(http.StatusOK, "base.html", gin.H{
+		"title":       "Create New Automation",
+		"timestamp":   time.Now(),
+		"user":        user,
+		"secauto_url": secautoURL,
+	})
+}
+
+// playbookNewPage serves the new playbook page
+func playbookNewPage(c *gin.Context) {
+	// Get current user
+	user := auth.GetCurrentUser(c)
+
+	// Get SecAuto server URL from config
+	cfg := service.GetConfig()
+	secautoURL := cfg.Remote.URL
+
+	// Check if this is an HTMX request
+	if c.GetHeader("HX-Request") == "true" {
+		// Return only the playbook new content
+		c.HTML(http.StatusOK, "playbook-new-content", gin.H{
+			"secauto_url": secautoURL,
+		})
+		return
+	}
+
+	// Return full page for direct navigation
+	c.HTML(http.StatusOK, "base.html", gin.H{
+		"title":       "Create New Playbook",
+		"timestamp":   time.Now(),
+		"user":        user,
+		"secauto_url": secautoURL,
+	})
+}
+
+// fileBrowserAutomationsAPI serves the automations data as JSON for file browser
+func fileBrowserAutomationsAPI(c *gin.Context) {
+	// Get SecAuto server URL and API key from config
+	if service == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Service not initialized",
+		})
+		return
+	}
+	cfg := service.GetConfig()
+	secautoURL := cfg.Remote.URL
+	apiKey := cfg.Remote.APIKey
+
+	// Create request with API key header
+	req, err := http.NewRequest("GET", secautoURL+"/automations", nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create request to SecAuto server: " + err.Error(),
+		})
+		return
+	}
+
+	// Add API key header
+	req.Header.Set("X-API-Key", apiKey)
+
+	// Make request to SecAuto server
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to connect to SecAuto server: " + err.Error(),
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to read response from SecAuto server",
+		})
+		return
+	}
+
+	// Return raw JSON response
+	c.Data(http.StatusOK, "application/json", body)
+}
+
+// fileBrowserPlaybooksAPI serves the playbooks data as JSON for file browser
+func fileBrowserPlaybooksAPI(c *gin.Context) {
+	// Get SecAuto server URL and API key from config
+	if service == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Service not initialized",
+		})
+		return
+	}
+	cfg := service.GetConfig()
+	secautoURL := cfg.Remote.URL
+	apiKey := cfg.Remote.APIKey
+
+	// Create request with API key header
+	req, err := http.NewRequest("GET", secautoURL+"/playbooks", nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create request to SecAuto server: " + err.Error(),
+		})
+		return
+	}
+
+	// Add API key header
+	req.Header.Set("X-API-Key", apiKey)
+
+	// Make request to SecAuto server
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to connect to SecAuto server: " + err.Error(),
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to read response from SecAuto server",
+		})
+		return
+	}
+
+	// Return raw JSON response
+	c.Data(http.StatusOK, "application/json", body)
+}
+
+// fileBrowserPluginsAPI serves the plugins data as JSON for file browser
+func fileBrowserPluginsAPI(c *gin.Context) {
+	// Get SecAuto server URL and API key from config
+	if service == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Service not initialized",
+		})
+		return
+	}
+	cfg := service.GetConfig()
+	secautoURL := cfg.Remote.URL
+	apiKey := cfg.Remote.APIKey
+
+	// Create request with API key header
+	req, err := http.NewRequest("GET", secautoURL+"/plugins", nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create request to SecAuto server: " + err.Error(),
+		})
+		return
+	}
+
+	// Add API key header
+	req.Header.Set("X-API-Key", apiKey)
+
+	// Make request to SecAuto server
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to connect to SecAuto server: " + err.Error(),
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to read response from SecAuto server",
+		})
+		return
+	}
+
+	// Return raw JSON response
+	c.Data(http.StatusOK, "application/json", body)
 }

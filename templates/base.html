@@ -288,8 +288,10 @@
 
     <!-- Bootstrap JS -->
     <script src="/static/js/bootstrap.bundle.min.js"></script>
-    
+    <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
     <script>
+       
+    
         // Sidebar toggle functionality
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('sidebar');
@@ -374,7 +376,7 @@
         window.addEventListener('popstate', function() {
             setTimeout(highlightActiveNavItem, 50);
         });
-        
+        /*
         // Auto-refresh for real-time updates
         setInterval(function() {
             const currentPath = window.location.pathname;
@@ -382,7 +384,7 @@
                 htmx.ajax('GET', currentPath, {target: '#main-content', swap: 'innerHTML'});
             }
         }, 30000); // Refresh every 30 seconds
-        
+        */
         // Config menu toggle functionality
         function toggleConfigSubmenu(event) {
             event.preventDefault();
@@ -400,7 +402,322 @@
             console.log('Submenu show class:', submenu.classList.contains('show'));
         }
         
+        // Function to initialize Monaco Editor
+function initMonacoEditor(id,type,codevalue) {
+    // Prevent multiple initializations
+   
+    
+    var codeTextarea = document.getElementById(id);
+    
+    console.log('Looking for div:', codeTextarea);
+    
+    if (codeTextarea) {
+        // Check if Monaco is already initialized
+        var existingEditor = codeTextarea.nextElementSibling;
+        if (existingEditor && existingEditor.classList.contains('monaco-editor')) {
+            monacoInitialized = true;
+            return;
+        }
+        
+        try {
+            console.log('Initializing Monaco Editor for automation-new.html');
+            
+            // Load Monaco Editor
+            require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.45.0/min/vs' }});
+            require(['vs/editor/editor.main'], function() {
+                // Calculate fixed height based on viewport
+                var viewportHeight = window.innerHeight;
+                var fixedHeight = Math.max(400, viewportHeight * 0.6); // At least 400px, or 60% of viewport
+                
+                // Create Monaco Editor
+                var editor = monaco.editor.create(codeTextarea, {
+                    value: codevalue,
+                    language: type,
+                    theme: 'vs-dark',
+                    automaticLayout: true,
+                    fontSize: 12,
+                    lineNumbers: 'on',
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    wordWrap: 'on',
+                    tabSize: 4,
+                    insertSpaces: true,
+                    detectIndentation: false,
+                    height: fixedHeight
+                });
+                
+                // Hide the original textarea
+                //codeTextarea.style.display = 'none';
+                
+                // Function to update editor size
+                function updateEditorSize() {
+                    var viewportHeight = window.innerHeight;
+                    var newHeight = Math.max(400, viewportHeight * 0.6);
+                    editor.layout({ width: '100%', height: newHeight });
+                }
+                
+                // Handle window resize events
+                window.addEventListener('resize', function() {
+                    updateEditorSize();
+                });
+                
+                // Handle HTMX events
+                document.addEventListener('htmx:afterSwap', function() {
+                    setTimeout(function() {
+                        updateEditorSize();
+                    }, 100);
+                });
+                   
+                // Mark as initialized
+                monacoInitialized = true;
+                console.log('Monaco Editor initialized successfully for automation-new.html');
+            });
+            
+        } catch (error) {
+            console.error('Error initializing Monaco Editor:', error);
+        }
+    }
+}
+const codevaluePython = `# Example Python Integration
+import requests
+import json
 
+class automation:
+    def __init__(self, config):
+        self.config = config
+        self.base_url = config.get('url')
+        self.api_key = config.get('apikey')
+    
+    def connect(self):
+        # Implement connection logic
+        pass
+    
+    def execute(self, data):
+        # Implement execution logic
+        pass
+
+# Example usage
+if __name__ == '__main__':
+    config = {
+        'url': 'https://api.example.com',
+        'apikey': 'your-api-key'
+    }
+    integration = automation(config)
+    integration.connect()`
+const codevalueJson = `[{"run": "data_enrichment"}]`
+
+function waitForMonaco(data,type) {
+    var codeTextarea = document.getElementById(data);
+    if (codeTextarea) {
+        // Check if Monaco is loaded
+        if (typeof require !== 'undefined') {
+            switch (type) {
+                case 'python':
+                    initMonacoEditor(data,type,codevaluePython);
+                    break;
+                case 'json':
+                    initMonacoEditor(data,type,codevalueJson);
+                    break;
+            }
+        } else {
+            // Wait for scripts to load
+            setTimeout(waitForMonaco, 50);
+        }
+    }
+}
+function loadFileBrowser() {
+    // Show loading indicator
+    document.getElementById('file-browser').innerHTML = `
+        <div class="file-browser-loading">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Loading files...</span>
+            </div>
+            <div class="mt-2">Loading file structure...</div>
+        </div>
+    `;
+    
+    // Load data from API endpoints
+    Promise.all([
+        fetch('/api/file-browser/automations').then(response => response.json()),
+        fetch('/api/file-browser/playbooks').then(response => response.json()),
+        fetch('/api/file-browser/plugins').then(response => response.json())
+    ])
+    .then(([automationsData, playbooksData, pluginsData]) => {
+        console.log('Automations data:', automationsData);
+        console.log('Playbooks data:', playbooksData);
+        console.log('Plugins data:', pluginsData);
+        
+        // Convert plugins object to array if needed
+        let pluginsArray = [];
+        if (pluginsData && typeof pluginsData === 'object' && !Array.isArray(pluginsData)) {
+            // Check if there's a 'plugins' key that contains the plugins object
+            if (pluginsData.plugins && typeof pluginsData.plugins === 'object') {
+                // The plugins object has plugin names as keys
+                pluginsArray = Object.keys(pluginsData.plugins);
+            } else {
+                // Otherwise, use the keys of the object
+                pluginsArray = Object.keys(pluginsData);
+            }
+        } else if (Array.isArray(pluginsData)) {
+            pluginsArray = pluginsData;
+        }
+        
+        const data = {
+            automations: Array.isArray(automationsData) ? automationsData : (automationsData.automations || []),
+            playbooks: Array.isArray(playbooksData) ? playbooksData : (playbooksData.playbooks || []),
+            plugins: pluginsArray
+        };
+        renderFileBrowser(data);
+    })
+    .catch(error => {
+        console.error('Error loading file browser:', error);
+        document.getElementById('file-browser').innerHTML = `
+            <div class="file-browser-empty">
+                <i class="bi bi-exclamation-triangle"></i>
+                <div class="mt-2">Failed to load file structure</div>
+                <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="loadFileBrowser()">
+                    <i class="bi bi-arrow-clockwise"></i> Retry
+                </button>
+            </div>
+        `;
+    });
+}
+
+function renderFileBrowser(data) {
+    const fileBrowser = document.getElementById('file-browser');
+    let html = '';
+    
+    console.log('Rendering file browser with data:', data);
+    
+    // Render each category
+    const categories = [
+        { key: 'playbooks', icon: 'bi-book', title: 'Playbooks', data: data.playbooks },
+        { key: 'automations', icon: 'bi-gear', title: 'Automations', data: data.automations },
+        { key: 'plugins', icon: 'bi-plug', title: 'Plugins', data: data.plugins },
+        { key: 'conditions', icon: 'bi-question-circle', title: 'Conditions', data: ['if'] }
+    ];
+    
+    categories.forEach(category => {
+        let items = category.data || [];
+        console.log(`Category ${category.key}:`, items);
+        
+        if (!Array.isArray(items)) {
+            console.warn(`Items for ${category.key} is not an array:`, items);
+            items = [];
+        }
+        
+        html += `
+            <div class="file-browser-category">
+                <div class="file-browser-category-header" onclick="toggleCategory('${category.key}')" style="cursor: pointer;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="${category.icon}"></i> ${category.title}</span>
+                        <i class="bi bi-chevron-down category-toggle" id="toggle-${category.key}"></i>
+                    </div>
+                </div>
+                <div class="file-browser-category-content" id="content-${category.key}">
+        `;
+        
+        if (items.length === 0) {
+            html += `
+                <div class="file-browser-empty">
+                    <i class="bi bi-folder-x"></i>
+                    <div class="mt-1 small">No items found</div>
+                </div>
+            `;
+        } else {
+            items.forEach(item => {
+                let name = 'Unknown';
+                
+                // Handle different data structures
+                if (typeof item === 'string') {
+                    name = item;
+                } else if (item && item.name) {
+                    name = item.name;
+                } else if (item && item.id) {
+                    name = item.id;
+                }
+                
+                console.log(`Item in ${category.key}:`, item, 'Name:', name);
+                
+                html += `
+                    <div class="file-browser-item" 
+                         onclick="selectItem('${category.key}', '${name}')"
+                         title="${name}">
+                        <i class="bi bi-file-earmark"></i>
+                        <span>${name}</span>
+                    </div>
+                `;
+            });
+        }
+        
+        html += '</div></div>';
+    });
+    
+    fileBrowser.innerHTML = html;
+}
+
+function selectItem(category, name) {
+    // Remove previous selection
+    document.querySelectorAll('.file-browser-item.selected').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
+    // Add selection to clicked item
+    event.target.closest('.file-browser-item').classList.add('selected');
+    
+    // Load item content into editor
+    loadItemContent(category, name);
+}
+
+function toggleCategory(categoryKey) {
+    const content = document.getElementById(`content-${categoryKey}`);
+    const toggle = document.getElementById(`toggle-${categoryKey}`);
+    
+    if (content && toggle) {
+        const isCollapsed = content.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            // Expand
+            content.classList.remove('collapsed');
+            toggle.classList.add('rotated');
+        } else {
+            // Collapse
+            content.classList.add('collapsed');
+            toggle.classList.remove('rotated');
+        }
+    }
+}
+
+function loadItemContent(category, name) {
+    // Show loading indicator in editor
+    const editor = document.getElementById('playbook-code');
+    if (editor) {
+        const loadingContent = `# Loading ${category} content...\n# Name: ${name}\n\nPlease wait while the content is being loaded...`;
+        
+        if (window.monaco && window.monaco.editor) {
+            const editorInstance = window.monaco.editor.getModels()[0];
+            if (editorInstance) {
+                editorInstance.setValue(loadingContent);
+            }
+        } else {
+            editor.textContent = loadingContent;
+        }
+    }
+    
+    // For now, just show the item name in the editor
+    // In a real implementation, you'd fetch the actual content from the server
+    const content = `# ${category.charAt(0).toUpperCase() + category.slice(1)}: ${name}\n\n# Content for ${name} would be loaded here\n# This is a placeholder for the actual content`;
+    
+    if (window.monaco && window.monaco.editor) {
+        const editorInstance = window.monaco.editor.getModels()[0];
+        if (editorInstance) {
+            editorInstance.setValue(content);
+        }
+    } else {
+        // Fallback for when Monaco is not loaded
+        editor.textContent = content;
+    }
+}
     </script>
 </body>
 </html> 

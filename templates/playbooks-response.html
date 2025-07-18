@@ -6,12 +6,10 @@
                 <tr>
                     <th>Name</th>
                     <th>File</th>
-                    <th>Size</th>
                     <th>Rules</th>
-                    <th>Operations</th>
                     <th>Status</th>
                     <th>Modified</th>
-                    <th>Actions</th>
+                    <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -19,17 +17,15 @@
                 <tr>
                     <td>{{ .name }}</td>
                     <td>{{ .filename }}</td>
-                    <td>{{ .size }} bytes</td>
                     <td>{{ .rule_count }}</td>
-                    <td>{{ .operations }}</td>
                     <td>
                         <span class="badge {{ if .is_valid }}bg-success{{ else }}bg-warning{{ end }}">
                             {{ if .is_valid }}Valid{{ else }}Invalid{{ end }}
                         </span>
                     </td>
                     <td>{{ .modified_at }}</td>
-                    <td>
-                        <div class="btn-group btn-group-sm">
+                    <td class="text-end">
+                        <div class="d-flex gap-1 justify-content-end">
                             <button type="button" class="btn btn-outline-primary btn-sm"
                                     hx-get="/web/playbooks/{{ .name }}"
                                     hx-target="#main-content"
@@ -37,9 +33,9 @@
                                 <i class="bi bi-eye"></i>
                             </button>
                             <button type="button" class="btn btn-outline-success btn-sm"
-                                    hx-post="/api/playbook"
-                                    hx-confirm="Are you sure you want to execute this playbook?"
-                                    hx-target="#playbook-results">
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#executePlaybookModal"
+                                    data-playbook-name="{{ .name }}">
                                 <i class="bi bi-play"></i>
                             </button>
                             <button type="button" class="btn btn-outline-danger btn-sm"

@@ -1,4 +1,16 @@
 {{ define "integration-new-content" }}
+<style>
+    /* Monaco Editor height management - force fixed height */
+    .monaco-editor {
+        height: 70vh !important;
+        width: 100% !important;
+        max-height: 70vh !important;
+        min-height: 400px !important;
+        overflow: hidden !important;
+    }
+    
+</style>
+
 <div class="d-flex flex-column" style="height: calc(100vh - 100px);">
     <!-- Header -->
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -20,129 +32,36 @@
     <!-- Main Content Area -->
     <div class="flex-grow-1 d-flex flex-column">
         <div class="row flex-grow-1 mb-3">
-    <!-- Left Side: Configuration -->
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="bi bi-gear"></i> Config
-                </h6>
-            </div>
-            <div class="card-body p-2">
-                <form id="integration-form" hx-post="/api/integrations" 
-                      hx-target="#main-content"
-                      hx-swap="innerHTML">
-                    
-                    <!-- Basic Information -->
-                    <div class="mb-2">
-                        <label for="integration-name" class="form-label small">Name *</label>
-                        <input type="text" class="form-control form-control-sm" id="integration-name" name="name" required>
+            <div class="col-md-0 d-flex flex-column">
+                <div class="card flex-grow-1 d-flex flex-column">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
+                            <i class="bi bi-code-slash"></i> Python Code
+                        </h6>
                     </div>
-                    
-                    <div class="mb-2">
-                        <label for="integration-type" class="form-label small">Type *</label>
-                        <select class="form-select form-select-sm" id="integration-type" name="type" required>
-                            <option value="">Select...</option>
-                            <option value="api">API</option>
-                            <option value="database">Database</option>
-                            <option value="webhook">Webhook</option>
-                            <option value="email">Email</option>
-                            <option value="slack">Slack</option>
-                            <option value="jira">Jira</option>
-                            <option value="github">GitHub</option>
-                            <option value="aws">AWS</option>
-                            <option value="azure">Azure</option>
-                            <option value="gcp">Google Cloud</option>
-                            <option value="custom">Custom</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-2">
-                        <label for="integration-version" class="form-label small">Version</label>
-                        <input type="text" class="form-control form-control-sm" id="integration-version" name="version" value="1.0.0">
-                    </div>
-                    
-                    <div class="mb-2">
-                        <label for="integration-description" class="form-label small">Description</label>
-                        <textarea class="form-control form-control-sm" id="integration-description" name="description" rows="1"></textarea>
-                    </div>
-                    
-                    <!-- Connection Settings -->
-                    <div class="mb-2">
-                        <label for="integration-url" class="form-label small">URL</label>
-                        <input type="url" class="form-control form-control-sm" id="integration-url" name="url" placeholder="https://api.example.com">
-                    </div>
-                    
-                    <div class="mb-2">
-                        <label for="integration-username" class="form-label small">Username</label>
-                        <input type="text" class="form-control form-control-sm" id="integration-username" name="username">
-                    </div>
-                    
-                    <div class="mb-2">
-                        <label for="integration-password" class="form-label small">Password</label>
-                        <input type="password" class="form-control form-control-sm" id="integration-password" name="password">
-                    </div>
-                    
-                    <div class="mb-2">
-                        <label for="integration-apikey" class="form-label small">API Key</label>
-                        <input type="password" class="form-control form-control-sm" id="integration-apikey" name="apikey">
-                    </div>
-                    
-                    <!-- Advanced Settings -->
-                    <div class="mb-2">
-                        <label for="integration-settings" class="form-label small">Settings (JSON)</label>
-                        <textarea class="form-control form-control-sm" id="integration-settings" name="settings" rows="2" placeholder='{"timeout": 30, "retries": 3}'></textarea>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="integration-enabled" name="enabled" checked>
-                            <label class="form-check-label small" for="integration-enabled">
-                                Enabled
-                            </label>
+                    <div class="card-body d-flex flex-column flex-grow-1">
+                        <div class="flex-grow-1 position-relative" style="margin-bottom: 20px;">
+                            <div id="integration-code" 
+                                 style="font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.4; resize: none;"
+                                 placeholder="# Enter your integration code here...">
+                            </div>
                         </div>
                     </div>
-                    
-
-                </form>
+                </div>
             </div>
         </div>
     </div>
-    
-    <!-- Right Side: Code Editor -->
-    <div class="col-md-9 d-flex flex-column">
-        <div class="card flex-grow-1 d-flex flex-column">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="bi bi-code-slash"></i> Python Code
-                </h6>
-            </div>
-            <div class="card-body d-flex flex-column flex-grow-1">
-                <div class="mb-2">
-                    <label for="integration-code" class="form-label">Integration Code</label>
-                </div>
-                <div class="flex-grow-1 position-relative">
-                    <textarea class="form-control h-100" id="integration-code" name="code" 
-                              style="font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.4; resize: none;"
-                              placeholder="# Enter your integration code here..."></textarea>
-                </div>
-                <div class="form-text mt-2">Write your integration logic in Python</div>
-            </div>
-        </div>
-    </div>
-</div>
-        </div>
 
-        <!-- Footer -->
-        <div class="mt-auto">
-            <div class="card">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-muted small">
+    <!-- Footer -->
+    <div class="mt-auto" style="margin-top: 20px;">
+        <div class="card">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
                             <i class="bi bi-info-circle"></i> 
                             Integration will be created with the specified configuration and Python code.
-                        </div>
-                        <div class="d-flex gap-2">
+                    </div>
+                    <div class="d-flex gap-2">
                             <button type="button" class="btn btn-outline-secondary btn-sm" 
                                     hx-get="/web/integrations" 
                                     hx-target="#main-content"
@@ -152,169 +71,17 @@
                             <button type="submit" class="btn btn-primary btn-sm" form="integration-form">
                                 <i class="bi bi-check"></i> Create Integration
                             </button>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
 </div>
 
-<!-- CodeMirror for syntax highlighting -->
-<link rel="stylesheet" href="/static/css/codemirror.css">
-<link rel="stylesheet" href="/static/css/monokai.css">
-<script src="/static/js/codemirror.min.js" onload="waitForCodeMirror()"></script>
-<script src="/static/js/python.js" onload="waitForCodeMirror()"></script>
+
 
 <script>
-// Flag to prevent multiple initializations
-var codemirrorInitialized = false;
-
-// Function to initialize CodeMirror
-function initCodeMirror() {
-    // Prevent multiple initializations
-    if (codemirrorInitialized) {
-        return;
-    }
-    
-    var codeTextarea = document.getElementById('integration-code');
-    
-    if (codeTextarea) {
-        // Check if CodeMirror is already initialized on this textarea
-        var existingEditor = codeTextarea.nextElementSibling;
-        if (existingEditor && existingEditor.classList.contains('CodeMirror')) {
-            codemirrorInitialized = true;
-            return;
-        }
-        
-        try {
-            var editor = CodeMirror.fromTextArea(codeTextarea, {
-                mode: 'python',
-                theme: 'monokai',
-                lineNumbers: true,
-                indentUnit: 4,
-                tabSize: 4,
-                lineWrapping: true,
-                autoCloseBrackets: true,
-                matchBrackets: true,
-                foldGutter: true,
-                gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-                extraKeys: {
-                    'Tab': function(cm) {
-                        if (cm.somethingSelected()) {
-                            cm.indentSelection('add');
-                        } else {
-                            cm.replaceSelection('    ', 'end');
-                        }
-                    }
-                }
-            });
-            
-            // Set initial size to fill the available space
-            editor.setSize('100%', '100%');
-            
-            // Test syntax highlighting by setting some initial content
-            editor.setValue(`# Example Python Integration
-import requests
-import json
-
-class Integration:
-    def __init__(self, config):
-        self.config = config
-        self.base_url = config.get('url')
-        self.api_key = config.get('apikey')
-    
-    def connect(self):
-        # Implement connection logic
-        pass
-    
-    def execute(self, data):
-        # Implement execution logic
-        pass
-
-# Example usage
-if __name__ == '__main__':
-    config = {
-        'url': 'https://api.example.com',
-        'apikey': 'your-api-key'
-    }
-    integration = Integration(config)
-    integration.connect()`);
-            
-            // Focus the editor to make it active
-            editor.focus();
-            
-            // Update textarea value when form is submitted
-            var form = document.querySelector('#integration-form');
-            if (form) {
-                form.addEventListener('submit', function() {
-                    codeTextarea.value = editor.getValue();
-                });
-            }
-            
-            // Mark as initialized
-            codemirrorInitialized = true;
-        } catch (error) {
-            console.error('Error initializing CodeMirror:', error);
-        }
-    }
-}
-
-
-// Auto-resize textareas
-function initTextareaResize() {
-    var textareas = document.querySelectorAll('textarea');
-    textareas.forEach(function(textarea) {
-        if (textarea.id !== 'integration-code') {
-            textarea.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = this.scrollHeight + 'px';
-            });
-        }
-    });
-}
-// Initialize CodeMirror and textarea resize
-function initializePage() {
-    if (typeof CodeMirror !== 'undefined') {
-        initCodeMirror();
-    }
-    initTextareaResize();
-}
-
-// Function to try initialization with retries for initial page load
-function tryInitialize() {
-    // Check if we're on the integration-new page
-    var codeTextarea = document.getElementById('integration-code');
-    if (codeTextarea && typeof CodeMirror !== 'undefined') {
-        initializePage();
-    } else if (codeTextarea && typeof CodeMirror === 'undefined') {
-        // Retry after a short delay if CodeMirror isn't loaded yet
-        setTimeout(tryInitialize, 100);
-    }
-}
-
-// Function to wait for scripts to load and then initialize
-function waitForCodeMirror() {
-    var codeTextarea = document.getElementById('integration-code');
-    if (codeTextarea) {
-        // Check if CodeMirror is loaded
-        if (typeof CodeMirror !== 'undefined') {
-            initializePage();
-        } else {
-            // Wait for scripts to load
-            setTimeout(waitForCodeMirror, 50);
-        }
-    }
-}
-
-// Listen for initial page load with retry mechanism
-document.addEventListener('DOMContentLoaded', function() {
-    // Start waiting for CodeMirror to load
-    waitForCodeMirror();
-});
-
-// Listen for HTMX events (these fire when navigating via HTMX)
-document.addEventListener('htmx:afterSwap', initializePage);
-document.addEventListener('htmx:load', initializePage);
+waitForMonaco('integration-code','python');
 </script>
 {{ end }} 
